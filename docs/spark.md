@@ -1,6 +1,6 @@
-# Apache Spark e PySpark
+# Apache Spark e PySpark { .hero-title }
 
-## O que é o Apache Spark?
+## O que é o Apache Spark? { .reveal }
 
 Apache Spark é um framework de computação distribuída criado para processar grandes volumes de dados de forma rápida. Foi desenvolvido na Universidade de Berkeley em 2009 e hoje é um dos projetos open-source mais usados em engenharia de dados.
 
@@ -8,7 +8,7 @@ A principal diferença em relação ao Hadoop MapReduce é que o Spark processa 
 
 ---
 
-## Como funciona a arquitetura
+## Como funciona a arquitetura { .reveal }
 
 O Spark funciona no modelo driver + executores. O driver é o programa principal que coordena tudo, e os executores são os processos que de fato processam os dados nos nós do cluster.
 
@@ -24,29 +24,55 @@ No nosso caso, como o ambiente é local, tudo roda na mesma máquina com `local[
 
 ---
 
-## Módulos principais
+## Módulos principais { .reveal }
 
 O Spark é dividido em módulos que atendem casos de uso diferentes:
 
-| Módulo | Para que serve |
-|---|---|
-| **Spark Core** | Motor base, gerenciamento de memória e execução distribuída |
-| **Spark SQL** | Processamento de dados estruturados com DataFrames e SQL |
-| **Structured Streaming** | Processamento de dados em tempo real |
-| **MLlib** | Machine Learning distribuído |
-| **GraphX** | Processamento de grafos |
+<div class="grid cards reveal" markdown>
+
+-   :material-engine-outline:{ .lg .middle .accent-spark } &nbsp; __Spark Core__
+
+    ---
+
+    Motor base, gerenciamento de memória e execução distribuída
+
+-   :material-database-search:{ .lg .middle .accent-spark } &nbsp; __Spark SQL__
+
+    ---
+
+    Processamento de dados estruturados com DataFrames e SQL
+
+-   :material-waveform:{ .lg .middle .accent-spark } &nbsp; __Structured Streaming__
+
+    ---
+
+    Processamento de dados em tempo real
+
+-   :material-brain:{ .lg .middle .accent-spark } &nbsp; __MLlib__
+
+    ---
+
+    Machine Learning distribuído
+
+-   :material-graph-outline:{ .lg .middle .accent-spark } &nbsp; __GraphX__
+
+    ---
+
+    Processamento de grafos
+
+</div>
 
 Neste trabalho usamos principalmente o **Spark SQL** com a API de DataFrames.
 
 ---
 
-## PySpark
+## PySpark { .reveal }
 
 PySpark é a API Python do Spark. Permite escrever código em Python que roda de forma distribuída no Spark. É a escolha mais comum hoje em dia porque Python já é a linguagem padrão de dados.
 
 ---
 
-## Conceitos importantes
+## Conceitos importantes { .reveal }
 
 ### DataFrame
 
@@ -83,7 +109,7 @@ spark = SparkSession.builder \
 
 ---
 
-## Referências
+## Referências { .reveal }
 
 - [Spark Documentation](https://spark.apache.org/docs/latest/)
 - [PySpark API Reference](https://spark.apache.org/docs/latest/api/python/)

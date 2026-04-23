@@ -1,6 +1,6 @@
-# Apache Iceberg
+# Apache Iceberg { .hero-title }
 
-## O que é o Apache Iceberg?
+## O que é o Apache Iceberg? { .reveal }
 
 Apache Iceberg é um formato de tabela aberta (*open table format*) criado pela Netflix para resolver problemas de escala com tabelas Hive em produção. Foi doado à Apache Software Foundation em 2018 e hoje é um dos formatos mais populares para data lakes modernos.
 
@@ -8,7 +8,7 @@ Assim como o Delta Lake, o Iceberg resolve o problema da falta de suporte a UPDA
 
 ---
 
-## Como funciona
+## Como funciona { .reveal }
 
 O Iceberg organiza os dados em camadas:
 
@@ -25,18 +25,51 @@ Cada operação cria um novo **snapshot** que aponta para os arquivos de dados d
 
 ---
 
-## Principais recursos
+## Principais recursos { .reveal }
 
-- **Transações ACID** — assim como o Delta Lake
-- **Snapshots** — cada operação gera um snapshot, rastreável
-- **Time Travel** — consulta qualquer snapshot pelo ID ou timestamp
-- **Schema Evolution** — renomear e adicionar colunas sem downtime
-- **Particionamento oculto** — o Iceberg gerencia partições automaticamente, sem expor ao usuário
-- **Multi-engine** — suporta Spark, Flink, Trino, Hive e outros lendo a mesma tabela
+<div class="grid cards reveal" markdown>
+
+-   :material-shield-check:{ .lg .middle .accent-iceberg } &nbsp; __Transações ACID__
+
+    ---
+
+    Assim como o Delta Lake
+
+-   :material-camera-iris:{ .lg .middle .accent-iceberg } &nbsp; __Snapshots__
+
+    ---
+
+    Cada operação gera um snapshot, rastreável
+
+-   :material-history:{ .lg .middle .accent-iceberg } &nbsp; __Time Travel__
+
+    ---
+
+    Consulta qualquer snapshot pelo ID ou timestamp
+
+-   :material-chart-tree:{ .lg .middle .accent-iceberg } &nbsp; __Schema Evolution__
+
+    ---
+
+    Renomear e adicionar colunas sem downtime
+
+-   :material-eye-off:{ .lg .middle .accent-iceberg } &nbsp; __Particionamento oculto__
+
+    ---
+
+    O Iceberg gerencia partições automaticamente, sem expor ao usuário
+
+-   :material-connection:{ .lg .middle .accent-iceberg } &nbsp; __Multi-engine__
+
+    ---
+
+    Suporta Spark, Flink, Trino, Hive e outros lendo a mesma tabela
+
+</div>
 
 ---
 
-## Modelo de dados
+## Modelo de dados { .reveal }
 
 ```mermaid
 erDiagram
@@ -54,7 +87,7 @@ erDiagram
 
 ---
 
-## DDL da tabela
+## DDL da tabela { .reveal }
 
 ```sql
 CREATE TABLE local.db.vendas (
@@ -72,7 +105,7 @@ USING iceberg;
 
 ---
 
-## Operações demonstradas
+## Operações demonstradas { .reveal }
 
 ### Configuração
 
@@ -139,7 +172,7 @@ df_antigo = spark.read \
 
 ---
 
-## Iceberg vs Delta Lake
+## Iceberg vs Delta Lake { .reveal }
 
 A principal diferença prática entre os dois é o suporte multi-engine: o Iceberg foi projetado desde o início para ser lido por vários engines diferentes (Spark, Trino, Flink), enquanto o Delta Lake historicamente tinha integração mais forte com Spark e Databricks.
 
@@ -147,7 +180,7 @@ Para uso com Spark puro, os dois funcionam de forma muito parecida. A escolha en
 
 ---
 
-## Referências
+## Referências { .reveal }
 
 - [Apache Iceberg — Documentação Oficial](https://iceberg.apache.org/docs/latest/)
 - [spark-iceberg — jlsilva01](https://github.com/jlsilva01/spark-iceberg)
