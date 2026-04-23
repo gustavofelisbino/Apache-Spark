@@ -1,0 +1,22 @@
+# Ambientes virtuais
+.venv/
+
+# Warehouses gerados pelos notebooks (dados locais)
+delta-warehouse/
+iceberg-warehouse/
+warehouse/
+spark-warehouse/
+
+# Cache do Spark
+derby.log
+metastore_db/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*.pyo
+.ipynb_checkpoints/
+
+# Arquivos do sistema
+.DS_Store
+Thumbs.db
