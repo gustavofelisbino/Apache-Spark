@@ -1,31 +1,70 @@
-# Contextualização do Trabalho
+---
+hide:
+  - navigation
+  - toc
+---
 
-## Sobre este Projeto
+# Apache Spark · Delta Lake · Iceberg { .hero-title }
 
-Este trabalho foi desenvolvido como parte da disciplina de **Arquitetura de Dados** e tem como objetivo explorar, na prática, o ecossistema do **Apache Spark** em conjunto com duas tecnologias modernas de *open table formats*: **Delta Lake** e **Apache Iceberg**.
+Um estudo prático sobre *open table formats* modernos executados em PySpark, com demonstrações reais de transações ACID, Time Travel e snapshots sobre um único dataset de vendas.
+
+[Começar pelo Spark :material-arrow-right:](spark.md){ .md-button .md-button--primary }
+[Ver no GitHub :simple-github:](https://github.com/gustavofelisbino/Apache-Spark){ .md-button }
+
+---
+
+## Explore a documentação { .reveal }
+
+<div class="grid cards reveal" markdown>
+
+-   :simple-apachespark:{ .lg .middle .accent-spark } &nbsp; __Apache Spark & PySpark__
+
+    ---
+
+    Como o Spark distribui o processamento, DataFrames, *lazy evaluation* e a `SparkSession` que dá vida ao projeto.
+
+    [:octicons-arrow-right-24: Ler sobre Spark](spark.md)
+
+-   :material-layers-triple:{ .lg .middle .accent-delta } &nbsp; __Delta Lake__
+
+    ---
+
+    Transações ACID sobre Parquet, Time Travel e MERGE. Criado pela Databricks, mantido pela Linux Foundation.
+
+    [:octicons-arrow-right-24: Ler sobre Delta Lake](delta_lake.md)
+
+-   :material-snowflake:{ .lg .middle .accent-iceberg } &nbsp; __Apache Iceberg__
+
+    ---
+
+    Snapshots, particionamento oculto e leitura *multi-engine*. Formato aberto criado pela Netflix para data lakes em escala.
+
+    [:octicons-arrow-right-24: Ler sobre Iceberg](iceberg.md)
+
+</div>
+
+## Contextualização { .reveal }
+
+Este repositório contém a implementação prática de um ambiente **PySpark** com dois dos formatos de tabela aberta mais importantes do ecossistema de *big data* moderno: **Delta Lake** e **Apache Iceberg**.
+
+O objetivo é demonstrar, dentro do mesmo projeto e sobre o mesmo dataset, como cada tecnologia executa operações transacionais que o Parquet puro não suporta nativamente.
 
 !!! info "Grupo"
-    **Gustavo Dias** e **Lucas Oliverio**
+    **Gustavo Dias** e **Lucas Oliverio** — Arquitetura de Dados
 
----
+## Cenário de negócio { .reveal }
 
-## Cenário de Negócio
+Para demonstrar as funcionalidades de cada tecnologia, utilizamos um dataset fictício de **vendas de e-commerce**, representando transações de uma loja virtual ao longo do tempo. O cenário simula operações reais onde registros precisam ser:
 
-Para demonstrar as funcionalidades de cada tecnologia, utilizamos um dataset fictício de **vendas de e-commerce**, representando transações de uma loja virtual ao longo do tempo.
+- :material-database-plus: **Inseridos** conforme novos pedidos chegam
+- :material-database-edit: **Atualizados** quando o status muda (ex: `pendente` → `entregue`)
+- :material-database-remove: **Deletados** quando pedidos são cancelados
 
-O cenário simula operações reais de um sistema de dados onde registros precisam ser:
+Esse tipo de operação é exatamente onde Delta Lake e Iceberg brilham, já que o Parquet tradicional não suporta `UPDATE` e `DELETE` nativamente.
 
-- **Inseridos** conforme novos pedidos chegam
-- **Atualizados** quando o status de um pedido muda (ex: "pendente" → "entregue")
-- **Deletados** quando pedidos são cancelados ou estornados
+## Modelo de dados { .reveal }
 
-Esse tipo de operação é exatamente onde tecnologias como Delta Lake e Iceberg brilham, pois o Hadoop/Parquet tradicional não suporta UPDATE e DELETE nativamente.
-
----
-
-## Modelo de Dados (ER)
-
-A tabela principal utilizada nos experimentos é a `vendas`, com o seguinte esquema:
+A tabela principal utilizada nos experimentos é a `vendas`:
 
 ```mermaid
 erDiagram
@@ -41,75 +80,65 @@ erDiagram
     }
 ```
 
-### Descrição dos Campos
-
 | Campo | Tipo | Descrição |
 |---|---|---|
 | `id` | `INT` | Identificador único da venda |
 | `produto` | `STRING` | Nome do produto vendido |
-| `categoria` | `STRING` | Categoria do produto (Eletrônicos, Roupas, etc.) |
+| `categoria` | `STRING` | Categoria do produto |
 | `quantidade` | `INT` | Quantidade de itens vendidos |
-| `preco` | `DOUBLE` | Preço unitário do produto (R$) |
-| `data_venda` | `STRING` | Data da transação (formato `YYYY-MM-DD`) |
+| `preco` | `DOUBLE` | Preço unitário (R$) |
+| `data_venda` | `STRING` | Data da transação (`YYYY-MM-DD`) |
 | `vendedor` | `STRING` | Nome do vendedor responsável |
-| `status` | `STRING` | Status do pedido: `pendente`, `pago`, `entregue`, `cancelado` |
+| `status` | `STRING` | `pendente`, `pago`, `entregue`, `cancelado` |
 
----
+## DDL das tabelas { .reveal }
 
-## DDL das Tabelas
-
-=== "Delta Lake (SQL)"
+=== "Delta Lake"
 
     ```sql
     CREATE TABLE IF NOT EXISTS vendas (
-        id        INT,
-        produto   STRING,
-        categoria STRING,
+        id         INT,
+        produto    STRING,
+        categoria  STRING,
         quantidade INT,
-        preco     DOUBLE,
+        preco      DOUBLE,
         data_venda STRING,
-        vendedor  STRING,
-        status    STRING
+        vendedor   STRING,
+        status     STRING
     )
     USING DELTA
     LOCATION './delta-warehouse/vendas';
     ```
 
-=== "Apache Iceberg (SQL)"
+=== "Apache Iceberg"
 
     ```sql
     CREATE TABLE IF NOT EXISTS local.db.vendas (
-        id        INT,
-        produto   STRING,
-        categoria STRING,
+        id         INT,
+        produto    STRING,
+        categoria  STRING,
         quantidade INT,
-        preco     DOUBLE,
+        preco      DOUBLE,
         data_venda STRING,
-        vendedor  STRING,
-        status    STRING
+        vendedor   STRING,
+        status     STRING
     )
     USING iceberg
     LOCATION './iceberg-warehouse/vendas';
     ```
 
----
-
-## Por que Delta Lake e Iceberg?
-
-O Parquet puro, embora eficiente para leitura, não suporta operações transacionais ACID. As tecnologias de *open table format* surgem para resolver esse problema:
+## Comparativo { .reveal }
 
 | Característica | Parquet Puro | Delta Lake | Apache Iceberg |
 |---|:---:|:---:|:---:|
-| ACID Transactions | ❌ | ✅ | ✅ |
-| UPDATE / DELETE | ❌ | ✅ | ✅ |
-| Time Travel | ❌ | ✅ | ✅ |
-| Schema Evolution | Limitado | ✅ | ✅ |
-| Suporte a Spark | ✅ | ✅ | ✅ |
-| Multi-engine | ❌ | Parcial | ✅ |
+| ACID Transactions | :material-close: | :material-check: | :material-check: |
+| UPDATE / DELETE | :material-close: | :material-check: | :material-check: |
+| Time Travel | :material-close: | :material-check: | :material-check: |
+| Schema Evolution | Limitado | :material-check: | :material-check: |
+| Suporte a Spark | :material-check: | :material-check: | :material-check: |
+| Multi-engine | :material-close: | Parcial | :material-check: |
 
----
-
-## Estrutura do Projeto
+## Estrutura do projeto { .reveal }
 
 ```
 Apache-Spark/
@@ -121,13 +150,11 @@ Apache-Spark/
 └── docs/                # Páginas desta documentação
 ```
 
----
+## Fontes de referência { .reveal }
 
-## Fontes de Referência
-
-- [Apache Spark — Documentação Oficial](https://spark.apache.org/docs/latest/)
-- [Delta Lake — Documentação Oficial](https://docs.delta.io/)
-- [Apache Iceberg — Documentação Oficial](https://iceberg.apache.org/)
+- [Apache Spark — Documentação oficial](https://spark.apache.org/docs/latest/)
+- [Delta Lake — Documentação oficial](https://docs.delta.io/)
+- [Apache Iceberg — Documentação oficial](https://iceberg.apache.org/)
 - [Canal DataWay BR — YouTube](https://www.youtube.com/@DataWayBR)
 - [spark-delta — jlsilva01](https://github.com/jlsilva01/spark-delta)
 - [spark-iceberg — jlsilva01](https://github.com/jlsilva01/spark-iceberg)
