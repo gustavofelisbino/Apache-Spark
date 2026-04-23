@@ -2,121 +2,41 @@
 
 ## O que é o Apache Iceberg?
 
-**Apache Iceberg** é um formato de tabela aberta (*open table format*) de alto desempenho para grandes conjuntos de dados analíticos. Criado originalmente pela Netflix para resolver problemas de escala com tabelas Hive em produção, o projeto foi doado à Apache Software Foundation em 2018 e tornou-se um projeto de nível superior (TLP) em 2020.
+Apache Iceberg é um formato de tabela aberta (*open table format*) criado pela Netflix para resolver problemas de escala com tabelas Hive em produção. Foi doado à Apache Software Foundation em 2018 e hoje é um dos formatos mais populares para data lakes modernos.
 
-!!! quote "Definição"
-    Apache Iceberg é uma especificação aberta de formato de tabela que permite que múltiplos engines de processamento (Spark, Flink, Trino, Hive, Dremio) leiam e escrevam na mesma tabela de forma confiável e eficiente.
+Assim como o Delta Lake, o Iceberg resolve o problema da falta de suporte a UPDATE e DELETE no Parquet puro, mas com uma abordagem diferente baseada em snapshots e manifests.
 
 ---
 
-## Arquitetura
+## Como funciona
+
+O Iceberg organiza os dados em camadas:
 
 ```mermaid
 graph TD
-    subgraph "Iceberg Table Format"
-        A[Catálogo]
-        B[metadata.json]
-        C[Snapshot 1]
-        D[Snapshot 2]
-        E[Manifest List]
-        F[Manifest File]
-        G[Arquivos Parquet/ORC/Avro]
-
-        A --> B
-        B --> C
-        B --> D
-        D --> E
-        E --> F
-        F --> G
-    end
-
-    H[Spark / Flink / Trino] --> A
-
-    style A fill:#1565c0,color:#fff
-    style B fill:#1976d2,color:#fff
-    style H fill:#0d47a1,color:#fff
+    A[Catálogo] --> B[metadata.json]
+    B --> C[Snapshots]
+    C --> D[Manifest List]
+    D --> E[Manifest File]
+    E --> F[Arquivos Parquet]
 ```
 
-### Camadas da Arquitetura Iceberg
-
-| Camada | Componente | Descrição |
-|---|---|---|
-| **Catálogo** | Catalog | Registra tabelas e localiza metadados |
-| **Metadados** | `metadata.json` | Define o schema, particionamento e snapshots |
-| **Snapshots** | Snapshot | Representa o estado da tabela em um ponto no tempo |
-| **Manifests** | Manifest List / File | Lista os arquivos de dados de cada snapshot |
-| **Dados** | Parquet / ORC / Avro | Os dados reais armazenados |
+Cada operação cria um novo **snapshot** que aponta para os arquivos de dados daquele momento. O catálogo sempre aponta para o snapshot mais recente. Isso garante isolamento e permite Time Travel sem mover dados.
 
 ---
 
-## Principais Características
+## Principais recursos
 
-### ✅ Transações ACID Completas
-
-Assim como o Delta Lake, o Iceberg garante as propriedades ACID:
-
-- **Atomicidade**: operações são completas ou não acontecem
-- **Isolamento**: leitores não veem escritas parciais
-- **Consistência** e **Durabilidade** garantidas pelo modelo de snapshots
-
-### 📸 Snapshots e Time Travel
-
-```python
-# Listar snapshots
-spark.sql("SELECT * FROM local.db.vendas.snapshots").show()
-
-# Consultar snapshot específico
-spark.sql("""
-    SELECT * FROM local.db.vendas
-    VERSION AS OF 1234567890
-""")
-
-# Rollback para snapshot anterior
-spark.sql("""
-    CALL local.system.rollback_to_snapshot('db.vendas', 1234567890)
-""")
-```
-
-### 🔀 Evolução de Schema Sem Downtime
-
-```python
-# Adicionar coluna
-spark.sql("ALTER TABLE local.db.vendas ADD COLUMN desconto DOUBLE")
-
-# Renomear coluna
-spark.sql("ALTER TABLE local.db.vendas RENAME COLUMN desconto TO desconto_pct")
-
-# Mudar tipo de coluna (compatível)
-spark.sql("ALTER TABLE local.db.vendas ALTER COLUMN quantidade TYPE BIGINT")
-```
-
-### 📦 Particionamento Oculto (Hidden Partitioning)
-
-O Iceberg calcula automaticamente os valores de partição a partir das colunas de dados, sem expor ao usuário:
-
-```python
-# Particionamento por mês da data_venda — transparente para o usuário
-spark.sql("""
-    CREATE TABLE local.db.vendas_partitioned (
-        id INT, produto STRING, data_venda DATE
-    )
-    USING iceberg
-    PARTITIONED BY (months(data_venda))
-""")
-```
-
-### 🔍 Poda de Partição e Arquivos (Pruning)
-
-O Iceberg usa estatísticas de arquivos (min/max) para pular arquivos desnecessários, acelerando consultas:
-
-```
-Sem Iceberg: varre todos os arquivos → lento
-Com Iceberg: elimina 90% dos arquivos via estatísticas → rápido
-```
+- **Transações ACID** — assim como o Delta Lake
+- **Snapshots** — cada operação gera um snapshot, rastreável
+- **Time Travel** — consulta qualquer snapshot pelo ID ou timestamp
+- **Schema Evolution** — renomear e adicionar colunas sem downtime
+- **Particionamento oculto** — o Iceberg gerencia partições automaticamente, sem expor ao usuário
+- **Multi-engine** — suporta Spark, Flink, Trino, Hive e outros lendo a mesma tabela
 
 ---
 
-## Modelos de Dados (ER)
+## Modelo de dados
 
 ```mermaid
 erDiagram
@@ -134,29 +54,29 @@ erDiagram
 
 ---
 
-## DDL da Tabela
+## DDL da tabela
 
 ```sql
-CREATE TABLE IF NOT EXISTS local.db.vendas (
-    id         INT           COMMENT 'Identificador único da venda',
-    produto    STRING        COMMENT 'Nome do produto vendido',
-    categoria  STRING        COMMENT 'Categoria do produto',
-    quantidade INT           COMMENT 'Quantidade de itens vendidos',
-    preco      DOUBLE        COMMENT 'Preço unitário em R$',
-    data_venda STRING        COMMENT 'Data da transação (YYYY-MM-DD)',
-    vendedor   STRING        COMMENT 'Nome do vendedor',
-    status     STRING        COMMENT 'Status: pendente | pago | entregue | cancelado'
+CREATE TABLE local.db.vendas (
+    id         INT,
+    produto    STRING,
+    categoria  STRING,
+    quantidade INT,
+    preco      DOUBLE,
+    data_venda STRING,
+    vendedor   STRING,
+    status     STRING
 )
-USING iceberg
-LOCATION './iceberg-warehouse/vendas'
-COMMENT 'Tabela de vendas de e-commerce — Apache Iceberg';
+USING iceberg;
 ```
 
 ---
 
-## Operações na Prática
+## Operações demonstradas
 
-### Configurando o SparkSession
+### Configuração
+
+O Iceberg precisa do JAR de runtime. A forma mais simples com PySpark é passar via variável de ambiente antes de criar a sessão:
 
 ```python
 import os
@@ -164,64 +84,32 @@ os.environ["PYSPARK_SUBMIT_ARGS"] = (
     "--packages org.apache.iceberg:iceberg-spark-runtime-3.5_2.12:1.7.1 pyspark-shell"
 )
 
-from pyspark.sql import SparkSession
-
 spark = SparkSession.builder \
-    .appName("Apache Iceberg Demo") \
+    .appName("Iceberg Demo") \
     .config("spark.sql.extensions",
             "org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions") \
-    .config("spark.sql.catalog.local",
-            "org.apache.iceberg.spark.SparkCatalog") \
+    .config("spark.sql.catalog.local", "org.apache.iceberg.spark.SparkCatalog") \
     .config("spark.sql.catalog.local.type", "hadoop") \
     .config("spark.sql.catalog.local.warehouse", "./iceberg-warehouse") \
     .getOrCreate()
 ```
 
----
-
-### INSERT — Inserindo Dados
-
-=== "Carga Inicial"
-
-    ```python
-    dados_iniciais = [
-        (1,  "Notebook",        "Eletrônicos", 2, 3500.00, "2024-01-15", "Ana",    "entregue"),
-        (2,  "Camiseta Polo",   "Roupas",      5,   89.90, "2024-01-20", "Bruno",  "entregue"),
-        (3,  "Tênis Running",   "Calçados",    1,  450.00, "2024-02-01", "Carlos", "pago"),
-    ]
-
-    df = spark.createDataFrame(dados_iniciais, schema)
-
-    df.writeTo("local.db.vendas") \
-        .using("iceberg") \
-        .createOrReplace()
-    ```
-
-=== "Append de Novos Registros"
-
-    ```python
-    novos_dados = [(16, "Smartwatch", "Eletrônicos", 1, 899.00, "2024-04-01", "Diana", "pendente")]
-
-    df_novo = spark.createDataFrame(novos_dados, schema)
-
-    df_novo.writeTo("local.db.vendas").append()
-    ```
-
-=== "INSERT com SQL"
-
-    ```python
-    spark.sql("""
-        INSERT INTO local.db.vendas VALUES
-        (17, 'Tablet', 'Eletrônicos', 1, 1500.00, '2024-04-05', 'Eduardo', 'pendente')
-    """)
-    ```
-
----
-
-### UPDATE — Atualizando Registros
+### INSERT
 
 ```python
-# Atualiza status de pendente para pago
+# usando a API writeTo do Iceberg
+df.writeTo("local.db.vendas").append()
+
+# ou via SQL
+spark.sql("""
+    INSERT INTO local.db.vendas VALUES
+    (16, 'Fone Bluetooth', 'Eletronicos', 1, 299.90, '2024-04-01', 'Ana Silva', 'pendente')
+""")
+```
+
+### UPDATE
+
+```python
 spark.sql("""
     UPDATE local.db.vendas
     SET status = 'pago'
@@ -229,89 +117,38 @@ spark.sql("""
 """)
 ```
 
-!!! info "Merge On Read vs Copy On Write"
-    O Iceberg suporta dois modos de escrita para UPDATE/DELETE:
-
-    - **Copy-on-Write (CoW)**: reescreve os arquivos afetados — ideal para leitura frequente
-    - **Merge-on-Read (MoR)**: grava arquivos delta separados — ideal para escritas frequentes
-
-    ```python
-    spark.sql("""
-        ALTER TABLE local.db.vendas
-        SET TBLPROPERTIES ('write.update.mode' = 'merge-on-read')
-    """)
-    ```
-
----
-
-### DELETE — Removendo Registros
+### DELETE
 
 ```python
-# Remove vendas canceladas
 spark.sql("""
-    DELETE FROM local.db.vendas
-    WHERE status = 'cancelado'
+    DELETE FROM local.db.vendas WHERE status = 'cancelado'
 """)
 ```
 
----
-
-### MERGE (UPSERT)
+### Snapshots e Time Travel
 
 ```python
-spark.sql("""
-    MERGE INTO local.db.vendas AS t
-    USING (
-        SELECT 1 AS id, 'Notebook Pro' AS produto, 'Eletrônicos' AS categoria,
-               1 AS quantidade, 4500.00 AS preco, '2024-01-15' AS data_venda,
-               'Ana' AS vendedor, 'entregue' AS status
-    ) AS s
-    ON t.id = s.id
-    WHEN MATCHED THEN UPDATE SET *
-    WHEN NOT MATCHED THEN INSERT *
-""")
-```
+# ver todos os snapshots
+spark.sql("SELECT snapshot_id, committed_at, operation FROM local.db.vendas.snapshots").show()
 
----
-
-### Gerenciamento de Snapshots
-
-```python
-# Ver todos os snapshots
-spark.sql("SELECT * FROM local.db.vendas.snapshots").show()
-
-# Ver histórico de operações
-spark.sql("SELECT * FROM local.db.vendas.history").show()
-
-# Expirar snapshots antigos (limpeza)
-spark.sql("""
-    CALL local.system.expire_snapshots(
-        table => 'db.vendas',
-        older_than => TIMESTAMP '2024-01-01 00:00:00',
-        retain_last => 1
-    )
-""")
+# ler um snapshot específico
+df_antigo = spark.read \
+    .option("snapshot-id", id_do_snapshot) \
+    .table("local.db.vendas")
 ```
 
 ---
 
 ## Iceberg vs Delta Lake
 
-| Característica | Delta Lake | Apache Iceberg |
-|---|:---:|:---:|
-| Transações ACID | ✅ | ✅ |
-| Time Travel | ✅ | ✅ |
-| Schema Evolution | ✅ | ✅ (mais avançado) |
-| Particionamento Oculto | ❌ | ✅ |
-| Multi-engine nativo | Parcial | ✅ (Spark, Flink, Trino…) |
-| Merge-on-Read | ❌ | ✅ |
-| Mantido por | Databricks | Apache / Netflix |
+A principal diferença prática entre os dois é o suporte multi-engine: o Iceberg foi projetado desde o início para ser lido por vários engines diferentes (Spark, Trino, Flink), enquanto o Delta Lake historicamente tinha integração mais forte com Spark e Databricks.
+
+Para uso com Spark puro, os dois funcionam de forma muito parecida. A escolha entre um e outro geralmente depende do ecossistema que o time já usa.
 
 ---
 
 ## Referências
 
 - [Apache Iceberg — Documentação Oficial](https://iceberg.apache.org/docs/latest/)
-- [Iceberg no GitHub](https://github.com/apache/iceberg)
 - [spark-iceberg — jlsilva01](https://github.com/jlsilva01/spark-iceberg)
 - [Canal DataWay BR](https://www.youtube.com/@DataWayBR)

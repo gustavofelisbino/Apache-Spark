@@ -2,109 +2,55 @@
 
 ## O que é o Apache Spark?
 
-**Apache Spark** é um framework de computação distribuída de código aberto projetado para processar grandes volumes de dados de forma rápida e eficiente. Desenvolvido originalmente na Universidade de Berkeley em 2009 e tornado open-source em 2010, o Spark se tornou o principal motor de processamento de big data da atualidade.
+Apache Spark é um framework de computação distribuída criado para processar grandes volumes de dados de forma rápida. Foi desenvolvido na Universidade de Berkeley em 2009 e hoje é um dos projetos open-source mais usados em engenharia de dados.
 
-Ao contrário do Hadoop MapReduce, que persiste dados intermediários em disco, o Spark realiza processamento **em memória (in-memory)**, o que o torna até **100x mais rápido** em certas cargas de trabalho.
+A principal diferença em relação ao Hadoop MapReduce é que o Spark processa os dados em memória, o que o torna muito mais rápido em cargas de trabalho iterativas.
 
 ---
 
-## Arquitetura do Spark
+## Como funciona a arquitetura
+
+O Spark funciona no modelo driver + executores. O driver é o programa principal que coordena tudo, e os executores são os processos que de fato processam os dados nos nós do cluster.
 
 ```mermaid
 graph TD
-    A[Driver Program] --> B[SparkContext / SparkSession]
-    B --> C[Cluster Manager]
-    C --> D[Worker Node 1]
-    C --> E[Worker Node 2]
-    C --> F[Worker Node N]
-    D --> G[Executor]
-    E --> H[Executor]
-    F --> I[Executor]
-    G --> J[Task]
-    G --> K[Task]
-    H --> L[Task]
-    I --> M[Task]
-
-    style A fill:#e65100,color:#fff
-    style B fill:#f57c00,color:#fff
-    style C fill:#ff9800,color:#fff
+    A[Driver / SparkSession] --> B[Cluster Manager]
+    B --> C[Worker Node 1 - Executor]
+    B --> D[Worker Node 2 - Executor]
+    B --> E[Worker Node N - Executor]
 ```
 
-### Componentes Principais
-
-| Componente | Papel |
-|---|---|
-| **Driver** | Programa principal que orquestra a execução |
-| **SparkContext / SparkSession** | Ponto de entrada para o Spark |
-| **Cluster Manager** | Gerencia os recursos do cluster (YARN, Mesos, Kubernetes, Standalone) |
-| **Worker Node** | Máquina que executa as tarefas |
-| **Executor** | Processo JVM no Worker que executa as tasks |
-| **Task** | Unidade mínima de trabalho executada pelo Executor |
+No nosso caso, como o ambiente é local, tudo roda na mesma máquina com `local[*]`, que usa todos os núcleos disponíveis.
 
 ---
 
-## Ecossistema Spark
+## Módulos principais
 
-```mermaid
-graph LR
-    CORE[Spark Core]
-    SQL[Spark SQL]
-    STREAM[Structured Streaming]
-    ML[MLlib]
-    GRAPH[GraphX]
+O Spark é dividido em módulos que atendem casos de uso diferentes:
 
-    CORE --> SQL
-    CORE --> STREAM
-    CORE --> ML
-    CORE --> GRAPH
-
-    style CORE fill:#e65100,color:#fff
-    style SQL fill:#f57c00,color:#fff
-    style STREAM fill:#ff9800,color:#fff
-    style ML fill:#ffa726,color:#fff
-    style GRAPH fill:#ffcc02,color:#000
-```
-
-| Módulo | Descrição |
+| Módulo | Para que serve |
 |---|---|
-| **Spark Core** | Motor de execução distribuída, RDDs, gerenciamento de memória |
-| **Spark SQL** | Processamento de dados estruturados com SQL e DataFrames |
+| **Spark Core** | Motor base, gerenciamento de memória e execução distribuída |
+| **Spark SQL** | Processamento de dados estruturados com DataFrames e SQL |
 | **Structured Streaming** | Processamento de dados em tempo real |
-| **MLlib** | Biblioteca de Machine Learning distribuída |
+| **MLlib** | Machine Learning distribuído |
 | **GraphX** | Processamento de grafos |
+
+Neste trabalho usamos principalmente o **Spark SQL** com a API de DataFrames.
 
 ---
 
 ## PySpark
 
-**PySpark** é a API Python para o Apache Spark. Ela permite escrever aplicações Spark em Python, aproveitando toda a capacidade de processamento distribuído do Spark sem precisar escrever código em Scala ou Java.
-
-### Por que usar PySpark?
-
-- ✅ Python é a linguagem mais popular em Data Science e Engenharia de Dados
-- ✅ Integração nativa com pandas, NumPy, scikit-learn
-- ✅ APIs modernas: DataFrame, SQL, Streaming
-- ✅ Fácil de aprender para quem já conhece pandas
+PySpark é a API Python do Spark. Permite escrever código em Python que roda de forma distribuída no Spark. É a escolha mais comum hoje em dia porque Python já é a linguagem padrão de dados.
 
 ---
 
-## Conceitos Fundamentais
-
-### RDD (Resilient Distributed Dataset)
-
-O RDD é a estrutura de dados fundamental e de mais baixo nível do Spark. Representa uma coleção imutável e distribuída de objetos que pode ser processada em paralelo.
-
-```python
-# Exemplo de RDD
-sc = spark.sparkContext
-rdd = sc.parallelize([1, 2, 3, 4, 5])
-resultado = rdd.map(lambda x: x * 2).collect()
-print(resultado)  # [2, 4, 6, 8, 10]
-```
+## Conceitos importantes
 
 ### DataFrame
 
-O DataFrame é a abstração de alto nível preferida no Spark moderno. Similar ao pandas DataFrame, mas distribuído e com otimizações automáticas via **Catalyst Optimizer**.
+O DataFrame é a estrutura principal do Spark moderno. É parecido com um DataFrame do pandas, mas distribuído e com otimizações automáticas.
 
 ```python
 from pyspark.sql import SparkSession
@@ -112,111 +58,27 @@ from pyspark.sql.functions import col
 
 spark = SparkSession.builder.appName("Exemplo").getOrCreate()
 
-# Criando um DataFrame
 df = spark.createDataFrame([
-    (1, "Notebook", "Eletrônicos", 2, 3500.00),
-    (2, "Camiseta",  "Roupas",      5,   89.90),
-], ["id", "produto", "categoria", "quantidade", "preco"])
+    (1, "Notebook", "Eletronicos", 3500.00),
+    (2, "Camiseta", "Roupas",        89.90),
+], ["id", "produto", "categoria", "preco"])
 
-# Operações
 df.filter(col("preco") > 100).show()
 ```
 
-### Dataset
+### Lazy Evaluation
 
-O Dataset é uma API de nível intermediário disponível em Scala e Java, que combina a segurança de tipos do RDD com as otimizações do DataFrame. Em Python (PySpark), o DataFrame já incorpora o comportamento do Dataset.
+O Spark não executa nada enquanto você está encadeando transformações (`.filter()`, `.select()`, `.groupBy()`). Ele só processa quando você chama uma **ação** como `.show()`, `.collect()` ou `.write`. Isso permite que ele otimize o plano de execução completo antes de rodar.
 
----
+### SparkSession
 
-## Lazy Evaluation
-
-O Spark utiliza **avaliação preguiçosa (lazy evaluation)**: as transformações (`.filter()`, `.select()`, `.groupBy()`) não são executadas imediatamente. A execução só ocorre quando uma **ação** (`.show()`, `.collect()`, `.count()`, `.write`) é chamada.
-
-```mermaid
-graph LR
-    A[Leitura] -->|transformação| B[filter]
-    B -->|transformação| C[select]
-    C -->|transformação| D[groupBy]
-    D -->|AÇÃO| E[show / collect / write]
-
-    style E fill:#e65100,color:#fff
-```
-
-Isso permite que o Spark otimize todo o plano de execução antes de processar qualquer dado.
-
----
-
-## SparkSession
-
-A `SparkSession` é o ponto de entrada unificado para todas as funcionalidades do Spark a partir da versão 2.0.
+É o ponto de entrada para qualquer coisa no Spark. Todo notebook começa criando um:
 
 ```python
-from pyspark.sql import SparkSession
-
 spark = SparkSession.builder \
     .appName("MeuApp") \
-    .master("local[*]") \          # local[*] usa todos os núcleos da máquina
-    .config("spark.driver.memory", "2g") \
+    .master("local[*]") \
     .getOrCreate()
-
-print(f"Versão do Spark: {spark.version}")
-```
-
-### Modos de Execução
-
-| Modo | Descrição | Uso |
-|---|---|---|
-| `local` | 1 thread, sem paralelismo | Testes simples |
-| `local[N]` | N threads locais | Desenvolvimento |
-| `local[*]` | Todos os núcleos da CPU | Desenvolvimento |
-| `yarn` | Cluster YARN (Hadoop) | Produção |
-| `k8s://...` | Kubernetes | Produção cloud-native |
-
----
-
-## Transformações vs Ações
-
-=== "Transformações (Lazy)"
-
-    | Método | Descrição |
-    |---|---|
-    | `select()` | Seleciona colunas |
-    | `filter()` / `where()` | Filtra linhas |
-    | `groupBy()` | Agrupa dados |
-    | `join()` | Faz junção entre DataFrames |
-    | `withColumn()` | Adiciona/modifica coluna |
-    | `drop()` | Remove coluna |
-    | `orderBy()` | Ordena resultados |
-    | `union()` | Combina DataFrames |
-
-=== "Ações (Eager)"
-
-    | Método | Descrição |
-    |---|---|
-    | `show()` | Exibe linhas no console |
-    | `collect()` | Retorna todos os dados ao driver |
-    | `count()` | Conta o número de linhas |
-    | `first()` | Retorna a primeira linha |
-    | `take(n)` | Retorna as primeiras N linhas |
-    | `write` | Persiste dados em disco |
-    | `printSchema()` | Exibe o schema do DataFrame |
-
----
-
-## Formatos de Arquivo Suportados
-
-```python
-# Leitura e escrita nos principais formatos
-df.write.format("parquet").save("./saida/parquet")
-df.write.format("json").save("./saida/json")
-df.write.format("csv").option("header", True).save("./saida/csv")
-df.write.format("orc").save("./saida/orc")
-
-# Com Delta Lake
-df.write.format("delta").save("./saida/delta")
-
-# Com Iceberg
-df.write.format("iceberg").save("local.db.tabela")
 ```
 
 ---
@@ -225,4 +87,3 @@ df.write.format("iceberg").save("local.db.tabela")
 
 - [Spark Documentation](https://spark.apache.org/docs/latest/)
 - [PySpark API Reference](https://spark.apache.org/docs/latest/api/python/)
-- [Databricks Learning](https://www.databricks.com/learn)
