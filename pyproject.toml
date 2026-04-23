@@ -1,0 +1,23 @@
+[project]
+name = "apache-spark-delta-iceberg"
+version = "0.1.0"
+description = "Trabalho de Pesquisa: Apache Spark com Delta Lake e Apache Iceberg"
+authors = [
+    { name = "Gustavo Dias" },
+    { name = "Lucas Oliverio" },
+]
+requires-python = ">=3.11"
+dependencies = [
+    "pyspark==3.5.3",
+    "delta-spark==3.2.0",
+    "jupyterlab>=4.2.0",
+    "ipykernel>=6.29.0",
+    "pandas>=2.2.0",
+    "pyarrow>=15.0.0",
+    "mkdocs>=1.6.0",
+    "mkdocs-material>=9.5.0",
+    "pymdown-extensions>=10.7.0",
+]
+
+[tool.uv]
+package = false

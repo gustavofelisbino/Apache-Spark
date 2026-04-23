@@ -1,0 +1,76 @@
+site_name: Apache Spark com Delta Lake e Iceberg
+site_description: Trabalho de Pesquisa sobre Arquitetura de Dados com Apache Spark, Delta Lake e Apache Iceberg
+site_author: Gustavo Dias e Lucas Oliverio
+site_url: https://gustavofelisbino.github.io/Apache-Spark/
+repo_url: https://github.com/gustavofelisbino/Apache-Spark
+repo_name: gustavofelisbino/Apache-Spark
+
+theme:
+  name: material
+  language: pt
+  palette:
+    - scheme: default
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-7
+        name: Modo escuro
+    - scheme: slate
+      primary: deep orange
+      accent: orange
+      toggle:
+        icon: material/brightness-4
+        name: Modo claro
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - toc.integrate
+
+plugins:
+  - search:
+      lang: pt
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - tables
+  - attr_list
+  - md_in_html
+  - def_list
+  - toc:
+      permalink: true
+
+nav:
+  - Início: index.md
+  - Apache Spark (PySpark): spark.md
+  - Delta Lake: delta_lake.md
+  - Apache Iceberg: iceberg.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/gustavofelisbino/Apache-Spark
