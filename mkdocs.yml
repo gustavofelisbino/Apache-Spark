@@ -4,36 +4,51 @@ site_author: Gustavo Dias e Lucas Oliverio
 site_url: https://gustavofelisbino.github.io/Apache-Spark/
 repo_url: https://github.com/gustavofelisbino/Apache-Spark
 repo_name: gustavofelisbino/Apache-Spark
+edit_uri: edit/main/docs/
 
 theme:
   name: material
   language: pt
+  icon:
+    logo: material/database-cog
+    repo: fontawesome/brands/github
+  favicon: assets/favicon.svg
   palette:
-    - scheme: default
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
       primary: deep orange
       accent: orange
       toggle:
-        icon: material/brightness-7
-        name: Modo escuro
-    - scheme: slate
+        icon: material/weather-night
+        name: Alternar para modo escuro
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
       primary: deep orange
-      accent: orange
+      accent: amber
       toggle:
-        icon: material/brightness-4
-        name: Modo claro
+        icon: material/weather-sunny
+        name: Alternar para modo claro
   font:
     text: Inter
     code: JetBrains Mono
   features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.sections
     - navigation.top
     - navigation.footer
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.select
     - content.code.annotate
-    - toc.integrate
+    - content.tabs.link
+    - content.tooltips
+    - toc.follow
 
 plugins:
   - search:
@@ -45,6 +60,7 @@ markdown_extensions:
       line_spans: __span
       pygments_lang_class: true
   - pymdownx.inlinehilite
+  - pymdownx.snippets
   - pymdownx.superfences:
       custom_fences:
         - name: mermaid
@@ -52,17 +68,30 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.tabbed:
       alternate_style: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
   - pymdownx.details
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.caret
+  - pymdownx.tilde
+  - pymdownx.mark
+  - pymdownx.keys
+  - pymdownx.smartsymbols
+  - pymdownx.tasklist:
+      custom_checkbox: true
   - admonition
   - tables
   - attr_list
   - md_in_html
   - def_list
+  - footnotes
+  - abbr
   - toc:
       permalink: true
+      permalink_title: Link para esta seção
 
 nav:
   - Início: index.md
@@ -70,7 +99,23 @@ nav:
   - Delta Lake: delta_lake.md
   - Apache Iceberg: iceberg.md
 
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js
+
 extra:
+  generator: false
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/gustavofelisbino/Apache-Spark
+      name: Repositório no GitHub
+  tags:
+    Spark: spark
+    Delta: delta
+    Iceberg: iceberg
+
+copyright: >
+  &copy; 2026 Gustavo Dias &amp; Lucas Oliverio —
+  Trabalho de Pesquisa · Arquitetura de Dados

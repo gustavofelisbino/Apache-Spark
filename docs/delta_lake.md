@@ -1,6 +1,6 @@
-# Delta Lake
+# Delta Lake { .hero-title }
 
-## O que é o Delta Lake?
+## O que é o Delta Lake? { .reveal }
 
 Delta Lake é uma camada de armazenamento open-source que adiciona transações ACID ao Apache Spark. Foi criado pela Databricks e doado à Linux Foundation em 2019.
 
@@ -8,7 +8,7 @@ O problema que ele resolve é simples: o Parquet puro não suporta UPDATE e DELE
 
 ---
 
-## Como funciona
+## Como funciona { .reveal }
 
 O Delta Lake grava os dados em arquivos Parquet normais, mas mantém um **transaction log** (`_delta_log/`) com o histórico de tudo que aconteceu na tabela. Cada operação (INSERT, UPDATE, DELETE) gera um novo arquivo de log em JSON. É isso que permite o controle de versões e o Time Travel.
 
@@ -25,16 +25,39 @@ delta-warehouse/vendas/
 
 ---
 
-## Principais recursos
+## Principais recursos { .reveal }
 
-- **Transações ACID** — operações atômicas, sem estados parciais
-- **Time Travel** — consegue consultar qualquer versão anterior da tabela
-- **Schema enforcement** — bloqueia gravação de dados com schema diferente por padrão
-- **MERGE (UPSERT)** — combina INSERT e UPDATE em uma operação só
+<div class="grid cards reveal" markdown>
+
+-   :material-shield-check:{ .lg .middle .accent-delta } &nbsp; __Transações ACID__
+
+    ---
+
+    Operações atômicas, sem estados parciais
+
+-   :material-history:{ .lg .middle .accent-delta } &nbsp; __Time Travel__
+
+    ---
+
+    Consegue consultar qualquer versão anterior da tabela
+
+-   :material-lock:{ .lg .middle .accent-delta } &nbsp; __Schema enforcement__
+
+    ---
+
+    Bloqueia gravação de dados com schema diferente por padrão
+
+-   :material-merge:{ .lg .middle .accent-delta } &nbsp; __MERGE (UPSERT)__
+
+    ---
+
+    Combina INSERT e UPDATE em uma operação só
+
+</div>
 
 ---
 
-## Modelo de dados
+## Modelo de dados { .reveal }
 
 ```mermaid
 erDiagram
@@ -52,7 +75,7 @@ erDiagram
 
 ---
 
-## DDL da tabela
+## DDL da tabela { .reveal }
 
 ```sql
 CREATE TABLE IF NOT EXISTS vendas (
@@ -71,7 +94,7 @@ LOCATION './delta-warehouse/vendas';
 
 ---
 
-## Operações demonstradas
+## Operações demonstradas { .reveal }
 
 ### Configuração
 
@@ -134,7 +157,7 @@ deltaTable.history().select("version", "timestamp", "operation").show()
 
 ---
 
-## Referências
+## Referências { .reveal }
 
 - [Delta Lake — Documentação Oficial](https://docs.delta.io/latest/index.html)
 - [spark-delta — jlsilva01](https://github.com/jlsilva01/spark-delta)
