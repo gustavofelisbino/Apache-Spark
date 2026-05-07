@@ -88,6 +88,12 @@ source .venv/bin/activate
 uv run jupyter lab
 ```
 
+No Windows, prefira iniciar pelo script abaixo. Ele configura `JAVA_HOME` e `HADOOP_HOME` antes de abrir o JupyterLab:
+
+```powershell
+.\start_jupyter.ps1
+```
+
 O JupyterLab abrirá automaticamente no navegador em `http://localhost:8888`.
 
 ### Notebooks disponíveis
